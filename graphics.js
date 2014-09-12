@@ -95,6 +95,17 @@ var Pad = function (canvas) {
 			context.stroke();
 			},
 
+		//Draws a square of the required dimension at the coordinates
+		draw_square: function(top_left, edge_width, color, fill_color){
+			context.beginPath();
+			context.rect(top_left.x, top_left.y, edge_width, edge_width);
+			apply_line_width(context, DEFAULT_LINE_WIDTH);
+			apply_color(context, color);
+			apply_fill_color(context, fill_color);
+			context.closePath();
+			context.stroke();
+		},
+
 		// Clears the entire board
 		clear: function() {
 			context.clearRect(0, 0, width, height);
