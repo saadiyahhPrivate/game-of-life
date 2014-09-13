@@ -99,7 +99,7 @@ var Pad = function (canvas) {
 		draw_square: function(top_left, edge_width, color, fill_color){
 			context.beginPath();
 			context.rect(top_left.x, top_left.y, edge_width, edge_width);
-			apply_line_width(context, DEFAULT_LINE_WIDTH);
+			apply_line_width(context, 1); //line width of one
 			apply_color(context, color);
 			apply_fill_color(context, fill_color);
 			context.closePath();
