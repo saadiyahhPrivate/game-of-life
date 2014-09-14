@@ -3,8 +3,9 @@
 					//  CREATING THE CANVAS
 
 //This function creates the canvas and a few global colors to be used in the
-//canvas
-var set_up_canvas_and_colors = function(){//defining some colors for use
+//canvas. It also sets the scale factors for drawing cells
+//It then draws a frame that defined the contour of the canvas.
+var set_up_canvas_and_colors = function(x, y){//defining some colors for use
 	window.black = Color(0,0,0);
 	window.red = Color(255,0,0);
 	window.green = Color(0,255,0);
@@ -16,15 +17,19 @@ var set_up_canvas_and_colors = function(){//defining some colors for use
 
 	//draw frame of the pad
 	pad.draw_rectangle(Coord(0, 0), pad.get_width(), pad.get_height(), 10, black);
-	//pad.draw_rectangle(Coord(0, 0), 100, 100, 10, red);
+
+	// Setting the scaling factors to draw cells on the grid
+	window.y_factor = pad.get_width()/ x;
+	window.x_factor = pad.get_height()/ y;
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-					//  GENERAL HELPERS
+					//  GENERAL HELPER
 
-//a random number selector: if number < chance, return true, else false
+//This function is a random number selector that decides if a cell will
+//be alive or not: if number < chance, return true (cell alive), else false(not alive)
 var decideFate = function(number){
 	var random = Math.random();
 	if (random < number){
@@ -35,116 +40,9 @@ var decideFate = function(number){
 	}
 }
 
-// Editing the Canvas
-
-//draw a live cell at the given coordinates
-var draw_live_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_factor, y*y_factor),x_factor, blue, green);
-}
-
-//draw a dead cell at the given coordinate
-var draw_dead_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_factor, y*y_factor),y_factor, blue, black);
-}
-
-//a function called on a dead cell
-//returns true if cell is to be made alive
-var makeCellAliveOrNot = function(grid, x, y){
-	var current_cell = grid.getCells()[y][x];
-	var numberOfNeighbors = getNumberOfNeighbors(grid, x, y);
-	if (numberOfNeighbors === 3){
-		return true;
-	}
-	else{
-		return false;
-	}
-}
-
-//a function called on a live cell
-//returns true if cell should be killed, false otherwise
-var killCellOrNot = function(grid, x, y){
-	var current_cell = grid.getCells()[y][x];
-	var numberOfNeighbors = getNumberOfNeighbors(grid, x, y);
-	if ((numberOfNeighbors > 3)|| (numberOfNeighbors<2)){
-		return true;
-	}
-	else{
-		return false;
-	}
-}
-
-
 //////////////////////////////////////////////////////////////////////////////////////
 
-					//  THE CELL
-
-function Cell(x, y, living){
-	this.x = x;
-	this.y = y;
-	this.living = living;
-}
-
-Cell.prototype.getX = function(){
-	return this.x;
-}
-
-Cell.prototype.getY = function(){
-	return this.y;
-}
-
-Cell.prototype.takeBirth = function(){
-	this.living = true;
-}
-
-Cell.prototype.die = function(){
-	this.living = false;
-}
-
-Cell.prototype.isAlive= function(){
-	return this.living;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-				
-					//  THE GRID
-
-function Grid(x_dimension, y_dimension, life_chance){
-	this.x_dimension = x_dimension;
-	this.y_dimension = y_dimension;
-	this.life_chance = life_chance;
-	this.cells = []
-	window.y_factor = pad.get_width()/ this.x_dimension;
-	window.x_factor = pad.get_height()/ this.y_dimension;
-
-}
-
-Grid.prototype.make_grid = function() {
-	for (var j=0; j<this.y_dimension; j++){
-		this.cells.push([]);
-		for (var i =0; i<this.x_dimension; i++){
-			var alive = decideFate(this.life_chance);
-			//creates a cell at that location with given probability of being alive
-			this.cells[j].push(new Cell(i, j, alive));
-		}
-	}
-}
-
-Grid.prototype.getYDimension = function(){
-	return this.y_dimension;
-}
-
-Grid.prototype.getXDimension = function(){
-	return this.x_dimension;
-}
-
-Grid.prototype.getLifeChance = function(){
-	return this.life_chance;
-}
-
-Grid.prototype.getCells = function(){
-	return this.cells;
-}
+					//  THE GAME OF LIFE LOGIC
 
 //function that calculates the number of neighbors around a particular cell
 var getNumberOfNeighbors = function(grid,x, y){
@@ -165,13 +63,35 @@ var getNumberOfNeighbors = function(grid,x, y){
 	return numNeighbors;
 }
 
+//a function called on a dead cell that returns true if cell is to be
+// made alive in the next generation
+var makeCellAliveOrNot = function(grid, x, y){
+	var current_cell = grid.getCells()[y][x];
+	var numberOfNeighbors = getNumberOfNeighbors(grid, x, y);
+	if (numberOfNeighbors === 3){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
 
-//////////////////////////////////////////////////////////////////////////////////////
+//A function called on a live cell that returns true if cell should 
+//be killed  in the next generation, false otherwise
+var killCellOrNot = function(grid, x, y){
+	var current_cell = grid.getCells()[y][x];
+	var numberOfNeighbors = getNumberOfNeighbors(grid, x, y);
+	if ((numberOfNeighbors > 3)|| (numberOfNeighbors<2)){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
 
-					//  THE GAME OF LIFE LOGIC
-
-//prepares the changes to be made for thenext generation of the game, 
-//stores what cells to kill / give birth to and calls the function to make the changes changes
+//prepares the changes to be made for the next generation of the game, 
+//stores what cells to kill / give birth to and calls the function (make ChangesToGrid)
+//to then make the changes changes
 var applyGameOfLifeLogic = function(grid){
 	var cellsToKill = [];
 	var cellsToGiveBirthTo = [];
@@ -193,7 +113,8 @@ var applyGameOfLifeLogic = function(grid){
 	makeChangesToGrid(cellsToKill, cellsToGiveBirthTo);
 }
 
-//actually makes the changes to the grid given the arrays of who to kill/ make alive
+//Actually makes the changes to the grid given the arrays of who to kill/ make alive
+//thus updating the grid to the next generation of cells
 var makeChangesToGrid = function(kill, giveBirth){
 	for (var a =0; a < kill.length; a++){
 		kill[a].die();
@@ -207,6 +128,18 @@ var makeChangesToGrid = function(kill, giveBirth){
 
 					//  DISPLAYING THE GAME OF LIFE
 
+//Draws a live cell at the given coordinates
+var draw_live_cell = function(x, y, x_dimension, y_dimension){
+	pad.draw_square(Coord(x*x_factor, y*y_factor),x_factor, blue, green);
+}
+
+//Draws a dead cell at the given coordinate
+var draw_dead_cell = function(x, y, x_dimension, y_dimension){
+	pad.draw_square(Coord(x*x_factor, y*y_factor),y_factor, blue, black);
+}
+
+
+//A function that draws each cell at the right location on the canvas.
 var showGridOnCanvas = function(grid){
 	var gridCells = grid.getCells();
 	for (var j =0; j <grid.getYDimension(); j++){
@@ -223,14 +156,16 @@ var showGridOnCanvas = function(grid){
 	applyGameOfLifeLogic(grid);
 }
 
-// start the game of life
+// The main function starts the Game of life
 var main = function(){
-	set_up_canvas_and_colors();
-	var interval = 200;
-	var width_grid = 180;
-	var height_grid = 180;
-	var current_grid = new Grid(width_grid, height_grid, 0.5);
-	current_grid.make_grid();
-	showGridOnCanvas(current_grid);
-	setInterval(function(){showGridOnCanvas(current_grid)}, interval);
-}();
+	var time_interval = 1;
+	var width_grid = 150;
+	var height_grid = 150;
+	var probability_of_being_alive = 0.5;
+
+	var current_grid = new Grid(width_grid, height_grid, probability_of_being_alive);
+	set_up_canvas_and_colors(width_grid, height_grid); // does setting up and calculates the scale factors
+	current_grid.make_grid(); //makes the grid, populating it with cells
+	showGridOnCanvas(current_grid); //draws the grid on the canvas
+	setInterval(function(){showGridOnCanvas(current_grid)}, time_interval); //updates grid at intervals
+};
