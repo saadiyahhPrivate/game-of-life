@@ -135,7 +135,6 @@ var draw_dead_cell = function(x, y, x_dimension, y_dimension){
 	pad.draw_square(Coord(x*x_dimension, y*y_dimension),x_dimension,y_dimension, blue, black);
 }
 
-
 //A function that draws each cell at the right location on the canvas.
 var showGridOnCanvas = function(grid){
 	var gridCells = grid.getCells();

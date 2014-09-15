@@ -1,3 +1,11 @@
+/*
+Visual tests: In a grid of size 150*150:
+The grid was created with a 0.5 probability of each cell being alive, after about 50 generations, 
+we observe structures such as the pulsar, the switch and toad (oscillatory structure) that emerge.
+The game was left to run for much longer and even then the oscillatory structures kept moving.
+*/
+
+
 test("testing cell methods", function(){
 	//creating a live cell
 	var current_cell = new Cell(5, 10, false);
