@@ -15,12 +15,9 @@ var set_up_canvas_and_colors = function(x, y){//defining some colors for use
 	window.pad = Pad(document.getElementById('canvas'));
 	pad.clear();
 
-	//draw frame of the pad
-	pad.draw_rectangle(Coord(0, 0), pad.get_width(), pad.get_height(), 10, black);
-
 	// Setting the scaling factors to draw cells on the grid
-	window.y_factor = pad.get_width()/ x;
-	window.x_factor = pad.get_height()/ y;
+	window.x_factor = pad.get_width()/ x;
+	window.y_factor = pad.get_height()/ y;
 }
 
 
@@ -130,12 +127,12 @@ var makeChangesToGrid = function(kill, giveBirth){
 
 //Draws a live cell at the given coordinates
 var draw_live_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_factor, y*y_factor),x_factor, blue, green);
+	pad.draw_square(Coord(x*x_dimension, y*y_dimension),x_dimension,y_dimension, blue, green);
 }
 
 //Draws a dead cell at the given coordinate
 var draw_dead_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_factor, y*y_factor),y_factor, blue, black);
+	pad.draw_square(Coord(x*x_dimension, y*y_dimension),x_dimension,y_dimension, blue, black);
 }
 
 
@@ -145,14 +142,13 @@ var showGridOnCanvas = function(grid){
 	for (var j =0; j <grid.getYDimension(); j++){
 		for (var i=0; i <grid.getXDimension(); i++){
 			if (gridCells[j][i].isAlive()){
-				draw_live_cell(i, j, grid.getXDimension, grid.getYDimension);
+				draw_live_cell(i, j, x_factor, y_factor);
 			}
 			else{
-				draw_dead_cell(i, j, grid.getXDimension, grid.getYDimension);
+				draw_dead_cell(i, j, x_factor, y_factor);
 			}
 		}
 	}
-	//make a timer that causes it to update at regular intervals?
 	applyGameOfLifeLogic(grid);
 }
 

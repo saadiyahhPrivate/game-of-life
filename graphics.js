@@ -96,9 +96,9 @@ var Pad = function (canvas) {
 			},
 
 		//Draws a square of the required dimension at the coordinates
-		draw_square: function(top_left, edge_width, color, fill_color){
+		draw_square: function(top_left, edge_width, edge_height, color, fill_color){
 			context.beginPath();
-			context.rect(top_left.x, top_left.y, edge_width, edge_width);
+			context.rect(top_left.x, top_left.y, edge_width, edge_height);
 			apply_line_width(context, 1); //line width of one
 			apply_color(context, color);
 			apply_fill_color(context, fill_color);
