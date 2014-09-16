@@ -30,5 +30,5 @@ Help Wanted:
 ------------------
 - Currently, the game is designed to move to the next generation when:
 	showGridOnCanvas(current_grid);
-is run. However, in the current implementation, I run this function periodically in the main function. However, I do not see a way to stop the game. Is there a way I can enable running the game and stopping it?
+is run. However, in the current implementation, I run this function periodically in the start_with_given_config function. However, I do not see a way to stop the game. Is there a way I can enable running the game and stopping it?
 
