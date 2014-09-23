@@ -34,6 +34,10 @@ Grid.prototype.getLifeChance = function(){
 	return this.life_chance;
 }
 
+Grid.prototype.setLifeChance = function(chance){
+	this.life_chance = chance;
+}
+
 Grid.prototype.getCells = function(){
 	return this.cells;
 }

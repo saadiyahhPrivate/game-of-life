@@ -38,7 +38,7 @@ var decideFate = function(number){
 }
 
 
-//Each helper from lecture
+//This is the Each iterator helper from lecture
 var each = function(iterable, f){
 	var l = iterable.length;
 	for (var i = 0; i< l; i++){
@@ -46,7 +46,7 @@ var each = function(iterable, f){
 	}
 }
 
-//from to from lecture
+//This is the from_to from lecture to iterate through a range
 from_to = function (from, to, f) {
 	if (from >= to) return;
 	f(from); 
@@ -62,19 +62,28 @@ from_to = function (from, to, f) {
 var getNumberOfNeighbors = function(grid,x, y){
 	var gridCells = grid.getCells();
 	var numNeighbors = 0;
-	for (var j = -1; j < 2; j++){
-		for (var i= -1; i < 2; i++){
-			if (!((j===0) && (i===0))){ //if we are not looking at the current cell
-				//if the neighbors lie within the grid area (defined by the dimensions)
-				if ( ((y+j) >=0) && ((y+j) <grid.getYDimension()) && ((x+i) >=0) && ((x+i) <grid.getXDimension())){
-					if (gridCells[y+j][x+i].isAlive()){
+
+	from_to(-1, 2, function(row){
+		var row_at = (y+row);
+		from_to(-1, 2, function(column){
+			var column_at = (x+column);
+			if (!((row===0) && (column===0))){ //if we are not looking at the current cell
+				if (lies_within_grid(grid, y+row, x+column)){ //if the cell we are looking at is within bounds
+					if (gridCells[row_at][column_at].isAlive()){
 						numNeighbors +=1;
 					}
 				}
 			}
-		}
-	}
+		})
+	});
 	return numNeighbors;
+}
+
+//a function that checks if a given location lies within the grid
+var lies_within_grid = function(grid,row, column){
+	if ((row) >=0 && row < grid.getYDimension() && (column) >=0 && column < grid.getXDimension()){
+		return true;
+	}
 }
 
 //a function called on a dead cell that returns true if cell is to be
@@ -110,32 +119,36 @@ var applyGameOfLifeLogic = function(grid){
 	var cellsToKill = [];
 	var cellsToGiveBirthTo = [];
 	var gridCells = grid.getCells();
-	for (var j =0; j <grid.getYDimension(); j++){
-		for (var i=0; i <grid.getXDimension(); i++){
-			if (gridCells[j][i].isAlive()){
-				if (killCellOrNot(grid, i, j)){
-					cellsToKill.push(gridCells[j][i]);
+
+	from_to(0, grid.getYDimension(), function(row){
+		var row_at = row;
+		from_to(0, grid.getXDimension(), function(column){
+			var column_at = column;
+			if (gridCells[row_at][column_at].isAlive()){
+				if (killCellOrNot(grid, column_at, row_at)){
+					cellsToKill.push(gridCells[row_at][column_at]);
 				}
 			}
 			else{
-				if(makeCellAliveOrNot(grid, i, j)){
-					cellsToGiveBirthTo.push(gridCells[j][i]);
+				if(makeCellAliveOrNot(grid, column_at, row_at)){
+					cellsToGiveBirthTo.push(gridCells[row_at][column_at]);
 				}
 			}
-		}
-	}
+		})
+	});
 	makeChangesToGrid(cellsToKill, cellsToGiveBirthTo);
 }
 
 //Actually makes the changes to the grid given the arrays of who to kill/ make alive
 //thus updating the grid to the next generation of cells
 var makeChangesToGrid = function(kill, giveBirth){
-	for (var a =0; a < kill.length; a++){
-		kill[a].die();
-	}
-	for (var b =0; b < giveBirth.length; b++){
-		giveBirth[b].takeBirth();
-	}
+	each(giveBirth, function(cell){
+		cell.takeBirth();
+	});
+
+	each(kill, function(cell){
+		cell.die();
+	});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -147,7 +160,7 @@ var run_on_dom = function(){
 	var probability = 0.5;
 	var my_grid = new Grid(dimensions, dimensions, probability); //create a grid of the specified dimensions
 	my_grid.make_grid();
-	var time_interval = 100;
+	var time_interval = 1;
 	var set_interval_ID = 0; //initially id is zero
 	var game_running = false; // an indicator if a game is currently running or not
 
@@ -175,11 +188,16 @@ var run_on_dom = function(){
 			id: "Restart", text: "Restart", click: on_Restart_Click
 		});
 
+		var gunButton = $("<button>", {
+			id: "MakeGun", text: "Make Gun", click: on_Make_Gun_CLick
+		});
+
 		//now add the button to the layout for buttons
 		$("#my_buttons").append(startButton);
 		$("#my_buttons").append(pauseButton);
 		$("#my_buttons").append(stepButton);
 		$("#my_buttons").append(restartButton);
+		$("#my_buttons").append(gunButton);
 	}
 
 	// Create a table with all cells aparently dead
@@ -198,16 +216,17 @@ var run_on_dom = function(){
 	// Reflect the grid situation on the DOM
 	var make_DOM_reflect_current_table_state = function(){
 		var my_grid_cells = my_grid.getCells();
-		for (var y =0; y< dimensions; y++){
-			for (var x =0; x < dimensions; x++){
-				if ((my_grid_cells[y][x]).isAlive()){
-					$(current_table.rows[y].cells.item(x)).attr("class", "is_alive");
+
+		from_to(0, dimensions, function(row){
+			from_to(0, dimensions, function(column){
+				if ((my_grid_cells[column][row]).isAlive()){
+					$(current_table.rows[column].cells.item(row)).attr("class", "is_alive");
 				}
 				else{
-					$(current_table.rows[y].cells.item(x)).attr("class", "is_not_alive");
+					$(current_table.rows[column].cells.item(row)).attr("class", "is_not_alive");
 				}
-			}
-		}
+			})
+		})
 	}
 
 	// Go through one generation
@@ -231,12 +250,13 @@ var run_on_dom = function(){
 		if (game_running){
 			clearInterval(set_interval_ID);
 			set_interval_ID = 0;
+			game_running = false;
 		}
 	}
 
 	// can only be activated when the game has been paused
 	var on_Step_Click = function(){
-		if(game_running && (set_interval_ID===0)){
+		if((!game_running) && (set_interval_ID===0)){
 			update_one_generation();
 		}
 	}
@@ -248,98 +268,35 @@ var run_on_dom = function(){
 			game_running= false;
 		}
 		set_interval_ID =0;
+		my_grid.setLifeChance(0.5);
 		my_grid.make_grid();
 		make_DOM_reflect_current_table_state();
 	}
 
+	//can only be called when the game is not running, creates a gun on the canvas!
+	var on_Make_Gun_CLick = function(){
+		if (!game_running){
+			my_grid.setLifeChance(0);
+			my_grid.make_grid(); //make a grid of all dead cells
+			my_cells = my_grid.getCells();
+
+			//now add the relevant live cells
+			cellsToMakeAlive = [my_cells[5][1], my_cells[5][2], my_cells[6][1], my_cells[6][2], 
+		 	my_cells[3][13], my_cells[3][14], my_cells[4][12], my_cells[4][16], my_cells[5][11], 
+		 	my_cells[6][11], my_cells[7][11], my_cells[8][12], my_cells[9][13], my_cells[9][14], 
+		 	my_cells[6][15], my_cells[5][17], my_cells[6][17], my_cells[7][17], my_cells[6][18], 
+		 	my_cells[8][16], my_cells[1][25], my_cells[2][25], my_cells[2][23], my_cells[3][21], 
+		 	my_cells[3][22], my_cells[4][21], my_cells[4][22], my_cells[5][21], my_cells[5][22], 
+		 	my_cells[6][23], my_cells[6][25], my_cells[7][25], my_cells[3][35], my_cells[3][36], 
+		 	my_cells[4][35], my_cells[4][36]];
+			
+			makeChangesToGrid([], cellsToMakeAlive);
+
+			make_DOM_reflect_current_table_state();
+		};
+
+	}
+
 	//actually runs the command that creates the buttons and the table(grid)
 	construct_all_DOM_elements();
-}
-
-//////////////////////////////////////////////////////////////////////////////////////
-
-					//  DISPLAYING THE GAME OF LIFE - project 1.1 approach
-
-//Draws a live cell at the given coordinates
-var draw_live_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_dimension, y*y_dimension),x_dimension,y_dimension, blue, green);
-}
-
-//Draws a dead cell at the given coordinate
-var draw_dead_cell = function(x, y, x_dimension, y_dimension){
-	pad.draw_square(Coord(x*x_dimension, y*y_dimension),x_dimension,y_dimension, blue, black);
-}
-
-//A function that draws each cell at the right location on the canvas.
-var showGridOnCanvas = function(grid){
-	var gridCells = grid.getCells();
-	for (var j =0; j <grid.getYDimension(); j++){
-		for (var i=0; i <grid.getXDimension(); i++){
-			if (gridCells[j][i].isAlive()){
-				draw_live_cell(i, j, x_factor, y_factor);
-			}
-			else{
-				draw_dead_cell(i, j, x_factor, y_factor);
-			}
-		}
-	}
-	applyGameOfLifeLogic(grid);
-}
-
-// The main function starts the Game of life Randomly
-var main = function(){
-	var time_interval = 1;
-	var width_grid = 150;
-	var height_grid = 150;
-	var probability_of_being_alive = 0.5;
-
-	var current_grid = new Grid(width_grid, height_grid, probability_of_being_alive);
-	set_up_canvas_and_colors(width_grid, height_grid); // does setting up and calculates the scale factors
-	current_grid.make_grid(); //makes the grid, populating it with cells
-	showGridOnCanvas(current_grid); //draws the grid on the canvas
-	setInterval(function(){showGridOnCanvas(current_grid)}, time_interval); //updates grid at intervals
-};
-
-// start the game witha given configuration
-// 0 random
-// 1 gun
-// this function will later be modified to take in a canvas element, configuration, size, probability
-// or anything that will be required for phase 2
-var start_with_given_config= function(config_number){
-	var time_interval = 1;
-
-	// creates an empty 50 * 50 grid
-	if (config_number === 1){
-		var width_grid = 50;
-		var height_grid = 50;
-		var probability_of_being_alive = 0;
-	}
-	// sets up a random grid
-	else {
-		var width_grid = 150;
-		var height_grid = 150;
-		var probability_of_being_alive = 0.5;
-	}
-
-	var current_grid = new Grid(width_grid, height_grid, probability_of_being_alive);
-	set_up_canvas_and_colors(width_grid, height_grid); // does setting up and calculates the scale factors
-	current_grid.make_grid(); //makes the grid, populating it with cells, all dead
-	 
-	 // place the live cells for the gun configuration
-	 my_cells = current_grid.getCells();
-	 if (config_number == 1){
-	 	cellsToMakeAlive = [my_cells[5][1], my_cells[5][2], my_cells[6][1], my_cells[6][2], 
-	 	my_cells[3][13], my_cells[3][14], my_cells[4][12], my_cells[4][16], my_cells[5][11], 
-	 	my_cells[6][11], my_cells[7][11], my_cells[8][12], my_cells[9][13], my_cells[9][14], 
-	 	my_cells[6][15], my_cells[5][17], my_cells[6][17], my_cells[7][17], my_cells[6][18], 
-	 	my_cells[8][16], my_cells[1][25], my_cells[2][25], my_cells[2][23], my_cells[3][21], 
-	 	my_cells[3][22], my_cells[4][21], my_cells[4][22], my_cells[5][21], my_cells[5][22], 
-	 	my_cells[6][23], my_cells[6][25], my_cells[7][25], my_cells[3][35], my_cells[3][36], 
-	 	my_cells[4][35], my_cells[4][36]];
-	 	//apply changes to the grid, that is, mae the cells specified above alive
-	 	makeChangesToGrid([], cellsToMakeAlive);
-	 }
-
-	showGridOnCanvas(current_grid); //draws the grid on the canvas
-	setInterval(function(){showGridOnCanvas(current_grid)}, time_interval); //updates grid at intervals
 }
