@@ -1,0 +1,38 @@
+.is_alive{
+	background-color:#FF4DFF;
+}
+.is_not_alive{
+	background-color: white;
+}
+
+.center{
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+#header_text{
+	font-family: "Times New Roman", Times, serif;
+	font-size: 50px;
+    line-height: 60px;
+    color: #7A00A3;
+    text-align: center;
+}
+
+table {
+	width: 500px;
+	height: 500px;
+	border: 1px;
+	border-spacing: 1px;
+	border-color: lavender;
+	margin-left: auto;
+    margin-right: auto;
+}
+
+td {
+	border: 1px;
+	border-color: white;
+}
+
+

@@ -11,6 +11,7 @@ function Grid(x_dimension, y_dimension, life_chance){
 // A function that populates the grid with cells, each made alive or dead 
 //according to the probability of life_chance.
 Grid.prototype.make_grid = function() {
+	this.cells = [];
 	for (var j=0; j<this.y_dimension; j++){
 		this.cells.push([]);
 		for (var i =0; i<this.x_dimension; i++){
@@ -35,4 +36,8 @@ Grid.prototype.getLifeChance = function(){
 
 Grid.prototype.getCells = function(){
 	return this.cells;
+}
+
+Grid.prototype.clearCells = function(){
+	this.cells = [];
 }

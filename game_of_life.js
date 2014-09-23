@@ -23,7 +23,7 @@ var set_up_canvas_and_colors = function(x, y){//defining some colors for use
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-					//  GENERAL HELPER
+					//  GENERAL HELPERS
 
 //This function is a random number selector that decides if a cell will
 //be alive or not: if number < chance, return true (cell alive), else false(not alive)
@@ -36,6 +36,23 @@ var decideFate = function(number){
 		return false;
 	}
 }
+
+
+//Each helper from lecture
+var each = function(iterable, f){
+	var l = iterable.length;
+	for (var i = 0; i< l; i++){
+		f(iterable[i]);
+	}
+}
+
+//from to from lecture
+from_to = function (from, to, f) {
+	if (from >= to) return;
+	f(from); 
+	from_to(from+1, to, f);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -122,8 +139,126 @@ var makeChangesToGrid = function(kill, giveBirth){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
+					//  Displaying game of life on the DOM- generating table etc
 
-					//  DISPLAYING THE GAME OF LIFE
+//A function that is called when the game is started and interacted with only through the DOM
+var run_on_dom = function(){
+	var dimensions = 50;
+	var probability = 0.5;
+	var my_grid = new Grid(dimensions, dimensions, probability); //create a grid of the specified dimensions
+	my_grid.make_grid();
+	var time_interval = 100;
+	var set_interval_ID = 0; //initially id is zero
+	var game_running = false; // an indicator if a game is currently running or not
+
+	//Make the buttons and create the table representing the grid of cells
+	var construct_all_DOM_elements = function(){
+		construct_buttons();
+		construct_html_table();
+	}
+
+	//This initialises all the buttons for the button section of the DOM
+	var construct_buttons = function(){
+		var startButton = $("<button>", {
+			id: "Start", text: "Start", click: on_Start_Click
+		});
+
+		var pauseButton = $("<button>", {
+			id: "Pause", text: "Pause", click: on_Pause_Click
+		});
+
+		var stepButton = $("<button>", {
+			id: "Step", text: "Step", click: on_Step_Click
+		});
+
+		var restartButton = $("<button>", {
+			id: "Restart", text: "Restart", click: on_Restart_Click
+		});
+
+		//now add the button to the layout for buttons
+		$("#my_buttons").append(startButton);
+		$("#my_buttons").append(pauseButton);
+		$("#my_buttons").append(stepButton);
+		$("#my_buttons").append(restartButton);
+	}
+
+	// Create a table with all cells aparently dead
+	var construct_html_table = function(){
+		var grid_table = $("<table>").attr("id", "current_table");
+		$("#my_display_grid").append(grid_table);
+		for (var i =0; i< dimensions; i++){
+			var row = $("<tr>");
+			for (var j=0; j< dimensions; j++){
+				row.append($("<td>").addClass("is_not_alive"));
+			}
+			grid_table.append(row);
+		}
+	}
+
+	// Reflect the grid situation on the DOM
+	var make_DOM_reflect_current_table_state = function(){
+		var my_grid_cells = my_grid.getCells();
+		for (var y =0; y< dimensions; y++){
+			for (var x =0; x < dimensions; x++){
+				if ((my_grid_cells[y][x]).isAlive()){
+					$(current_table.rows[y].cells.item(x)).attr("class", "is_alive");
+				}
+				else{
+					$(current_table.rows[y].cells.item(x)).attr("class", "is_not_alive");
+				}
+			}
+		}
+	}
+
+	// Go through one generation
+	var update_one_generation = function(){
+		applyGameOfLifeLogic(my_grid);
+		make_DOM_reflect_current_table_state();
+	}
+
+	//Specifying the behavior of buttons
+
+	//can only be activated if the game is not running
+	var on_Start_Click = function(){
+		if (!game_running){
+			game_running = true;
+			set_interval_ID = setInterval(update_one_generation, time_interval);
+		}
+	}
+
+	// can only be activated if the game is running
+	var on_Pause_Click = function(){
+		if (game_running){
+			clearInterval(set_interval_ID);
+			set_interval_ID = 0;
+		}
+	}
+
+	// can only be activated when the game has been paused
+	var on_Step_Click = function(){
+		if(game_running && (set_interval_ID===0)){
+			update_one_generation();
+		}
+	}
+
+	// can be activated anytime
+	var on_Restart_Click = function(){
+		if (game_running){
+			clearInterval(set_interval_ID);
+			game_running= false;
+		}
+		set_interval_ID =0;
+		my_grid.make_grid();
+		make_DOM_reflect_current_table_state();
+	}
+
+	//actually runs the command that creates the buttons and the table(grid)
+	construct_all_DOM_elements();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+					//  DISPLAYING THE GAME OF LIFE - project 1.1 approach
 
 //Draws a live cell at the given coordinates
 var draw_live_cell = function(x, y, x_dimension, y_dimension){
