@@ -40,11 +40,11 @@ Design challenges Phase 2
 
 Design Decision Phase 2
 ----------------------------------
--This time, as much as possible, I modified the code used in Phase 2 to use functionals taken from lecture.
+- This time, as much as possible, I modified the code used in Phase 2 to use functionals taken from lecture.
 
 - Additional Feature: The additional feature I chose to implement are activated through buttons. The "step" button allows the user to observe the next generation of cells. The "Reset" button clears the old grid contents and generates a new grid with live cells placed randomly it. Finally, the "Gun" button creates a gun structure on the grid and pressing "Start" sets it off.
 
--The "step", "gun" buttons can only be activated when the game is not running or paused. Otherwise, the "Reset" button can be activated anytime and run using "Start". This is because, ti makes sense to only be able to step through a game that is currently stationary and to create a gun configuration only when the user is not observing a game already.
+- The "step", "gun" buttons can only be activated when the game is not running or paused. Otherwise, the "Reset" button can be activated anytime and run using "Start". This is because, ti makes sense to only be able to step through a game that is currently stationary and to create a gun configuration only when the user is not observing a game already.
 
 - Note: the test file was useful in switching from for loops to functionals as they would readily indicate errors.
 
